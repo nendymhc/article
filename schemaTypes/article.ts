@@ -17,44 +17,42 @@ export const article = defineType({
   type: 'document',
   name: 'article',
   fields: [
-    defineField({type: 'string', name: 'title'}),
     defineField({
-      type: 'slug',
-      name: 'slug',
-      options: {source: 'title', maxLength: 96},
-    }),
-    defineField({
-      name: 'articleType',
-      type: 'postType',
-      initialValue: 'article',
+      type: 'string',
+      name: 'title',
+      title: 'Article Title*',
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       type: 'array',
       name: 'content',
-      of: [
-        defineArrayMember({type: 'block'}),
-        defineArrayMember({
-          type: 'image',
-          fields: [{type: 'string', name: 'caption'}],
-          options: {hotspot: true},
-        }),
-      ],
+      title: 'Article Content',
+      of: [defineArrayMember({type: 'block'})],
     }),
     defineField({
       type: 'reference',
       name: 'selectCategory',
-      title: 'Select Category',
+      title: 'Article Category*',
       to: [{type: 'category'}],
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
-      title: 'Is Featured',
+      title: 'Featured?',
       type: 'boolean',
       name: 'featured',
       initialValue: false,
     }),
     defineField({
+      name: 'articleType',
+      type: 'postType',
+      initialValue: 'article',
+      title: 'Article Type*',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       type: 'file',
       name: 'videoFile',
+      title: 'Article Video* (*.mp4, *.mov, *.avi, etc)',
       options: {accept: 'video/*'},
       hidden: ({document}) => document?.articleType !== 'video',
       validation: (Rule) =>
@@ -66,32 +64,63 @@ export const article = defineType({
     }),
     defineField({
       type: 'image',
-      name: 'image',
+      name: 'videoCover',
+      title: 'Article Video Cover* (size : 375x225 or aspect ratio 5:3)',
       options: {hotspot: true},
-      validation: (Rule) => Rule.required(),
+      hidden: ({document}) => document?.articleType !== 'video',
+      validation: (Rule) =>
+        Rule.custom((currentValue, {document}) =>
+          document?.articleType === 'video' && currentValue === undefined
+            ? 'Video cover required for Video type'
+            : true,
+        ),
+    }),
+    defineField({
+      type: 'image',
+      name: 'image',
+      title: 'Article Image* (size : 375x225 or aspect ratio 5:3)',
+      options: {hotspot: true},
+      hidden: ({document}) => document?.articleType === 'video',
+      validation: (Rule) =>
+        Rule.custom((currentValue, {document}) =>
+          document?.articleType === 'article' && currentValue === undefined
+            ? 'Image required for Article type'
+            : true,
+        ),
     }),
     defineField({
       type: 'array',
       name: 'visibleFor',
       title: 'Visible for',
       of: [defineArrayMember({type: 'reference', to: [{type: 'customer'}]})],
+      initialValue: [{_ref: 'ae6fa764-4876-4a68-9241-2fbf040e4fc8'}],
     }),
     defineField({
-      title: 'Start Date',
+      title: 'Article Start Date*',
       type: 'datetime',
       name: 'startDate',
       initialValue: new Date().toISOString(),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
-      title: 'End Date',
+      title: 'Article End Date',
       type: 'datetime',
       name: 'endDate',
     }),
     defineField({
-      title: 'Page View',
+      title: 'Article View Count',
       type: 'number',
       name: 'pageView',
       initialValue: 0,
+      readOnly: true,
+    }),
+    defineField({
+      type: 'slug',
+      name: 'slug',
+      options: {source: 'title', maxLength: 96},
+      hidden: ({currentUser}) => {
+        return !currentUser?.roles.find(({name}) => name === 'administrator')
+      },
     }),
   ],
   preview: {
@@ -99,14 +128,15 @@ export const article = defineType({
       image: 'image',
       title: 'title',
       articleType: 'articleType',
+      videoCover: 'videoCover',
     },
-    prepare: ({title, articleType, image}) => {
+    prepare: ({title, articleType, image, videoCover}) => {
       const type =
         articleType &&
         ARTICLE_TYPE.flatMap((option) => (option.value === articleType ? [option.title] : []))
       return {
         title: articleType ? `${type} - ${title}` : title,
-        media: image
+        media: type == 'Article' ? image : videoCover,
       }
     },
   },

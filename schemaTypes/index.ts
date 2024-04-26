@@ -8,7 +8,6 @@ export const schemaTypes = [
   category,
   topic,
   article,
-  video,
   customerGroup,
   application,
   postType,
