@@ -113,6 +113,7 @@ export const article = defineType({
       name: 'pageView',
       initialValue: 0,
       readOnly: true,
+      validation: (Rule)=> Rule.greaterThan(0)
     }),
     defineField({
       type: 'slug',

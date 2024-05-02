@@ -12,6 +12,7 @@ export const category = defineType({
       title: 'Display Order',
       initialValue: 1,
       hidden: ({document}) => document?.isFilter !== true,
+      validation: (Rule)=> Rule.greaterThan(0)
     }),
     defineField({
       type: 'slug',
