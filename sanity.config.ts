@@ -5,10 +5,10 @@ import {schemaTypes} from './schemaTypes'
 
 export default defineConfig({
   name: 'default',
-  title: 'Article',
+  title: 'Learning Hub',
 
-  projectId: 'yddsi95t',
-  dataset: 'production',
+  projectId: 'oc8o64xp',
+  dataset: 'oneapp-staging',
 
   plugins: [structureTool(), visionTool()],
 
